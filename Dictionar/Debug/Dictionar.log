@@ -1,0 +1,4 @@
+﻿  Dictionar.cpp
+C:\Facultate\Semestrul 2\POO\Dictionar1\Dictionar\Dictionar1\Dictionar\Dictionar\Dictionar.cpp(15): warning C4348: 'Dictionary': redefinition of default parameter: parameter 3
+C:\Facultate\Semestrul 2\POO\Dictionar1\Dictionar\Dictionar1\Dictionar\Dictionar\Dictionar.cpp(16): message : see declaration of 'Dictionary'
+  Dictionar.vcxproj -> C:\Facultate\Semestrul 2\POO\Dictionar1\Dictionar\Dictionar1\Dictionar\Debug\Dictionar.exe
