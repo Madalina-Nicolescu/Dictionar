@@ -1,0 +1,5 @@
+﻿  Dictionar.cpp
+C:\Facultate\Semestrul 2\POO\Dictionar1\Dictionar\Dictionar\KeyComp.h(25,1): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+C:\Facultate\Semestrul 2\POO\Dictionar1\Dictionar\Dictionar\KeyComp.h(26,1): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+C:\Facultate\Semestrul 2\POO\Dictionar1\Dictionar\Dictionar\KeyComp.h(38): warning C4715: 'KeyComp<std::basic_string<char,std::char_traits<char>,std::allocator<char> > >::operator()': not all control paths return a value
+  Dictionar.vcxproj -> C:\Facultate\Semestrul 2\POO\Dictionar1\Dictionar\x64\Debug\Dictionar.exe

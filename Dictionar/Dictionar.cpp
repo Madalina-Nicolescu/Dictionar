@@ -3,23 +3,18 @@
 #include "Nod.h"
 #include<vector>
 #include<string>
+#include<cassert>
 
 
 using namespace std;
 
 
-template<class K, class V, class F = KeyComp<K>> class Dictionary;
-template<class K, class V, class F = KeyComp<K>> ostream& operator <<(ostream&, Dictionary<K, V, F>&);
-
-
 template<class K, class V, class F = KeyComp<K>> class Dictionary
 {
     Nod<K, V>* root;
-    int height;
     F cmp;
 
 
-    //HELPERS
 
     void left_rotate(Nod<K, V>*);
     void right_rotate(Nod<K, V>*);
@@ -35,20 +30,20 @@ template<class K, class V, class F = KeyComp<K>> class Dictionary
     Nod<K, V>* succesor(Nod<K, V>*);
     void clearHelper(Nod<K, V>*);
 
+
+
 public:
 
 
     Dictionary();
     Dictionary(const Dictionary& d1);
 
-    Dictionary& operator = (const Dictionary&);
-
     void addPair(K, V);
     void removeKey(K);
     bool findKey(K);
-    void empty();
+    void clear();
 
-
+    Dictionary& operator = (const Dictionary&);
     V operator [](K);
     friend ostream& operator << <> (ostream&, Dictionary<K, V, F>&);
 
@@ -57,35 +52,16 @@ public:
 
 
 
-
-//-----CONSTRUCTORS-----
-
-template<class K, class V, class F>
-Dictionary<K, V, F>::Dictionary()
-{
-    root = NULL;
-    height = 0;
-}
+//-----PRIVATE HELPERS-----
 
 
 
-template<class K, class V, class F>
-Dictionary<K, V, F>::Dictionary(const Dictionary& d1) //copy constructor
-{
-    this->height = d1.height;
-    this->root = copyHelper(d1.root); //functie recursiva pentru copierea arborelui
-}
-
-
-
-
-//-----HELPERS-----
-
-
+//-----HELPER FOR COPY CONSTRUCTOR-----
 
 template<class K, class V, class F>
 Nod<K, V>* Dictionary<K, V, F>::copyHelper(const Nod<K, V>* r)
 {
+    //functie recursiva pentru copierea arborelui nod cu nod
     if (r != NULL)
     {
         Nod<K, V>* copyNod = new Nod<K, V>;
@@ -103,59 +79,72 @@ Nod<K, V>* Dictionary<K, V, F>::copyHelper(const Nod<K, V>* r)
 }
 
 
+//-----ROTATIONS-----
+
+
 template<class K, class V, class F>
 void Dictionary<K, V, F>::left_rotate(Nod<K, V>* x)
 {
-    cout << "left";
+    //rotatie la stanga, fiul drept al lui x devine parintele lui x
     Nod<K, V>* p = x->right->left;
     Nod<K, V>* newPar = x->right;
     if (x == this->root)
         this->root = newPar;
 
-    if (x->parent != NULL && x->parent->left == x)
+    if (x->parent != NULL && x->parent->left == x)//daca x este fiu stang
     {
-        x->parent->left = newPar;
+        //parintele lui x devine parintele fiului drept al lui x
+        x->parent->left = newPar; 
     }
-    else if (x->parent != NULL && x->parent->right == x)
+    else if (x->parent != NULL && x->parent->right == x)//daca x este fiu drept
     {
+        //parintele lui x devine parintele fiului drept al lui x
         x->parent->right = newPar;
     }
 
     newPar->parent = x->parent;
-    x->parent = newPar;
+    x->parent = newPar; //fiul drept al lui x devine parintele lui x
 
-    newPar->left = x;
-    x->right = p;
+    newPar->left = x; 
+    x->right = p;//x primeste alt fiu drept, vechiul fiu stang al noului parinte
+
     if (p != NULL)
         p->parent = x;
 }
 
+
 template<class K, class V, class F>
 void Dictionary<K, V, F>::right_rotate(Nod<K, V>* x)
 {
-    cout << "right";
+    //rotatie la dreapta, fiul stang al lui x devine parintele lui x
     Nod<K, V>* p = x->left->right;
     Nod<K, V>* newPar = x->left;
     if (x == this->root)
         this->root = newPar;
 
-    if (x->parent != NULL && x->parent->left == x)
+    if (x->parent != NULL && x->parent->left == x)//daca x este fiu stang
     {
+        //parintele lui x devine parintele fiului stang al lui x
         x->parent->left = newPar;
     }
-    else if (x->parent != NULL && x->parent->right == x)
+    else if (x->parent != NULL && x->parent->right == x)//daca x este fiu drept
     {
+        //parintele lui x devine parintele fiului stang al lui x
         x->parent->right = newPar;
     }
 
     newPar->parent = x->parent;
-    x->parent = newPar;
+    x->parent = newPar;//fiul stang al lui x devine parintele lui x
 
     newPar->right = x;
-    x->left = p;
+    x->left = p;//x primeste alt fiu stang, vechiul fiu drept al noului parinte
+
     if (p != NULL)
         p->parent = x;
 }
+
+
+
 
 template<class K, class V, class F>
 Nod<K, V>* Dictionary<K, V, F>::search(K key)
@@ -163,18 +152,18 @@ Nod<K, V>* Dictionary<K, V, F>::search(K key)
     Nod<K, V>* p = root;
     while (p != NULL)
     {
-        if (cmp(key, p->key) == -1)
+        if (cmp(key, p->key) == -1) //key < p->key
         {
             if (p->left == NULL)
                 break;
             else
                 p = p->left;
         }
-        else if (cmp(key, p->key) == 0)
+        else if (cmp(key, p->key) == 0) //k == p->key
             break;
         else
         {
-            if (p->right == NULL)
+            if (p->right == NULL) //k > p->key
                 break;
             else
                 p = p->right;
@@ -186,9 +175,13 @@ Nod<K, V>* Dictionary<K, V, F>::search(K key)
 template<class K, class V, class F>
 void Dictionary<K, V, F>::fixViolation(Nod<K, V>* x)
 {
+    //cand un nod este inserat, el primeste culoarea rosie
+    //functia verifica daca, prin inserarea unui nou nod,
+    //se incalca proprietatile unui red black tree
 
     if (x == root)
     {
+        //daca nodul inserat era radacina, se coloreaza in negru
         x->color = "black";
         return;
     }
@@ -197,6 +190,7 @@ void Dictionary<K, V, F>::fixViolation(Nod<K, V>* x)
     Nod<K, V>* grandparent = x->parent->parent;
 
     Nod<K, V>* uncle = NULL;
+
     if (x->parent->parent == NULL)
     {
         uncle = NULL;
@@ -214,20 +208,29 @@ void Dictionary<K, V, F>::fixViolation(Nod<K, V>* x)
 
     if (x->parent->color != "black")
     {
+        //daca culoarea nodului inserat este rosu si culoarea parintelui sau este tot rosu,
+        //se incalca proprietatea de rbt
+
         if (uncle != NULL && uncle->color == "red")
         {
             uncle->color = "black";
             x->parent->color = "black";
             grandparent->color = "red";
             fixViolation(grandparent);
+            //se recoloreaza parintele si unchiul lui x in negru,
+            //bunicul lui x in rosu,
+            //iar apoi este apelata din nou functia, pentru a verifica daca 
+            //se respecta proprietatile de rbt
         }
         else
         {
+            //daca unchiul e negru sau NULL (culoarea pentru NULL este tot negru)
+            
             if (grandparent->left == x->parent)
             {
-                if (x->parent->left == x)
+                if (x->parent->left == x) //left-left
                 {
-
+                    //x, parintele si bunicul formeaza o linie 
                     right_rotate(grandparent);
                     string s = grandparent->color;
                     grandparent->color = x->parent->color;
@@ -235,7 +238,8 @@ void Dictionary<K, V, F>::fixViolation(Nod<K, V>* x)
                 }
                 else
                 {
-
+                    //left-right
+                    //x, parintele si bunicul formeaza un triunghi
                     left_rotate(x->parent);
                     string s = grandparent->color;
                     grandparent->color = x->parent->color;
@@ -248,6 +252,8 @@ void Dictionary<K, V, F>::fixViolation(Nod<K, V>* x)
             {
                 if (x->parent->left == x)
                 {
+                    //right-left
+                    //in oglinda cu left-right
                     right_rotate(x->parent);
                     left_rotate(grandparent);
                     string s = grandparent->color;
@@ -256,6 +262,8 @@ void Dictionary<K, V, F>::fixViolation(Nod<K, V>* x)
                 }
                 else
                 {
+                    //right-right
+                    //in oglinda cu left-left
                     left_rotate(grandparent);
                     string s = grandparent->color;
                     grandparent->color = x->parent->color;
@@ -269,32 +277,122 @@ void Dictionary<K, V, F>::fixViolation(Nod<K, V>* x)
 
 
 
+//-----HELPERS FOR DELETION-----
+
 template<class K, class V, class F>
-void Dictionary<K, V, F>::inorder(Nod<K, V>* r)
+Nod<K, V>* Dictionary<K, V, F>::succesor(Nod<K, V>* x)
 {
-    if (r == NULL)
-        return;
-    inorder(r->left);
-    cout << r->key << " " << r->value << endl;
-    inorder(r->right);
+    Nod<K, V>* p = x;
+    while (p->left != NULL)
+    {
+        p = p->left;
+    }
+    return p;
 }
 
 template<class K, class V, class F>
-void Dictionary<K, V, F>::preorder(Nod<K, V>* r)
+Nod<K, V>* Dictionary<K, V, F>::replace(Nod<K, V>* x) //gasesc nodul care o sa il inlocuiasca pe x
 {
-    if (r == NULL)
-        return;
-    cout << r->key << " " << r->value << endl;
-    inorder(r->left);
-
-    inorder(r->right);
+    if (x->right == NULL && x->left == NULL)
+    {
+        //daca x e frunza
+        return NULL;
+    }
+    if (x->right != NULL && x->left != NULL) //daca are ambii fii
+    {
+        return succesor(x->right);
+    }
+    if (x->right != NULL) //daca are doar fiu drept
+    {
+        return x->right;
+    }
+    return x->left; //daca are doar fiu stang
 }
+
 
 template<class K, class V, class F>
-Nod<K, V>* Dictionary<K, V, F>::getRoot()
+void Dictionary<K, V, F>::fixDelete(Nod<K, V>* x)
 {
-    return this->root;
+    //functie care verifica daca proprietatile de rbt sunt pastrate si dupa stergerea unui nod
+
+    if (x != NULL)
+    {
+        if (x == root)
+            return;
+
+        Nod<K, V>* s = NULL; // s = fratele lui x
+        if (x->parent != NULL && x->parent->right == x)
+        {
+            s = x->parent->left;
+        }
+        if (x->parent != NULL && x->parent->left == x)
+        {
+            s = x->parent->right;
+        }
+        if (s == NULL)
+        {
+            fixDelete(x->parent);
+        }
+        else
+        {
+            if (s->color == "red")
+            {
+                x->parent->color = "red";
+                s->color = "black";
+                if (s->parent->left == s)
+                    right_rotate(x->parent);
+                else left_rotate(x->parent);
+                fixDelete(x);
+            }
+            else
+            {
+                if ((s->left != NULL && s->left->color == "red") || (s->right != NULL && s->right->color == "red"))
+                {
+                    if (s->left != NULL && s->left->color == "red")
+                    {
+                        if (s->parent->left == s)
+                        {
+                            s->left->color = s->color;
+                            s->color = x->parent->color;
+                            right_rotate(x->parent);
+                        }
+                        else
+                        {
+                            s->left->color = x->parent->color;
+                            right_rotate(s);
+                            left_rotate(x->parent);
+                        }
+                    }
+                    else
+                    {
+                        if (s->parent->left == s)
+                        {
+                            s->right->color = x->parent->color;
+                            left_rotate(s);
+                            right_rotate(x->parent);
+                        }
+                        else
+                        {
+                            s->right->color = s->color;
+                            s->color = x->parent->color;
+                            left_rotate(x->parent);
+                        }
+                    }
+                    x->parent->color = "black";
+                }
+                else
+                {
+                    s->color = "red";
+                    if (x->parent->color == "black")
+                        fixDelete(x->parent);
+                    else x->parent->color = "black";
+                }
+
+            }
+        }
+    }
 }
+
 
 template<class K, class V, class F>
 void Dictionary<K, V, F>::deleteNod(Nod<K, V>* x)
@@ -382,119 +480,14 @@ void Dictionary<K, V, F>::deleteNod(Nod<K, V>* x)
 
 }
 
-template<class K, class V, class F>
-Nod<K, V>* Dictionary<K, V, F>::replace(Nod<K, V>* x) //gasesc nodul care o sa il inlocuiasca pe x
-{
-    if (x->right == NULL && x->left == NULL)
-    {
-        //daca x e frunza
-        return NULL;
-    }
-    if (x->right != NULL && x->left != NULL) //daca are ambii fii
-    {
-        return succesor(x->right);
-    }
-    if (x->right != NULL)
-    {
-        return x->right;
-    }
-    return x->left;
-}
 
-template<class K, class V, class F>
-void Dictionary<K, V, F>::fixDelete(Nod<K, V>* x)
-{
-    if (x != NULL)
-    {
-        if (x == root)
-            return;
-        Nod<K, V>* s = NULL;
-        if (x->parent != NULL && x->parent->right == x)
-        {
-            s = x->parent->left;
-        }
-        if (x->parent != NULL && x->parent->left == x)
-        {
-            s = x->parent->right;
-        }
-        if (s == NULL)
-        {
-            fixDelete(x->parent);
-        }
-        else
-        {
-            if (s->color == "red")
-            {
-                x->parent->color = "red";
-                s->color = "black";
-                if (s->parent->left == s)
-                    right_rotate(x->parent);
-                else left_rotate(x->parent);
-                fixDelete(x);
-            }
-            else
-            {
-                if ((s->left != NULL && s->left->color == "red") || (s->right != NULL && s->right->color == "red"))
-                {
-                    if (s->left != NULL && s->left->color == "red")
-                    {
-                        if (s->parent->left == s)
-                        {
-                            s->left->color = s->color;
-                            s->color = x->parent->color;
-                            right_rotate(x->parent);
-                        }
-                        else
-                        {
-                            s->left->color = x->parent->color;
-                            right_rotate(s);
-                            left_rotate(x->parent);
-                        }
-                    }
-                    else
-                    {
-                        if (s->parent->left == s)
-                        {
-                            s->right->color = x->parent->color;
-                            left_rotate(s);
-                            right_rotate(x->parent);
-                        }
-                        else
-                        {
-                            s->right->color = s->color;
-                            s->color = x->parent->color;
-                            left_rotate(x->parent);
-                        }
-                    }
-                    x->parent->color = "black";
-                }
-                else
-                {
-                    s->color = "red";
-                    if (x->parent->color == "black")
-                        fixDelete(x->parent);
-                    else x->parent->color = "black";
-                }
 
-            }
-        }
-    }
-}
-
-template<class K, class V, class F>
-Nod<K, V>* Dictionary<K, V, F>::succesor(Nod<K, V>* x)
-{
-    Nod<K, V>* p = x;
-    while (p->left != NULL)
-    {
-        p = p->left;
-    }
-    return p;
-}
+//-----HELPER FOR CLEARING-----
 
 template<class K, class V, class F>
 void Dictionary<K, V, F>::clearHelper(Nod<K, V>* r)
 {
+    //functie recursiva pentru stergerea arborelui nod cu nod
     if (r != NULL)
     {
         clearHelper(r->left);
@@ -505,10 +498,60 @@ void Dictionary<K, V, F>::clearHelper(Nod<K, V>* r)
 }
 
 
+//-----HELPERS FOR DISPLAY-----
+
+template<class K, class V, class F>
+void Dictionary<K, V, F>::preorder(Nod<K, V>* r)
+{
+    if (r == NULL)
+        return;
+    cout << r->key << " " << r->value << endl;
+    inorder(r->left);
+
+    inorder(r->right);
+}
+
+
+
+template<class K, class V, class F>
+void Dictionary<K, V, F>::inorder(Nod<K, V>* r)
+{
+    if (r == NULL)
+        return;
+    inorder(r->left);
+    cout << r->key << " " << r->value << endl;
+    inorder(r->right);
+}
+
+
+//-----GETTER-----
+
+template<class K, class V, class F>
+Nod<K, V>* Dictionary<K, V, F>::getRoot()
+{
+    return this->root;
+}
 
 
 
 
+//-----CONSTRUCTORS-----
+
+template<class K, class V, class F>
+Dictionary<K, V, F>::Dictionary()
+{
+    root = NULL;
+}
+
+
+template<class K, class V, class F>
+Dictionary<K, V, F>::Dictionary(const Dictionary& d1) //copy constructor
+{
+    this->root = copyHelper(d1.root); //functie recursiva pentru copierea arborelui
+}
+
+
+//-----METHODS-----
 
 template<class K, class V, class F>
 void Dictionary<K, V, F>::addPair(K k, V v)
@@ -570,7 +613,7 @@ bool Dictionary<K, V, F>::findKey(K k)
 }
 
 template<class K, class V, class F>
-void Dictionary<K, V, F>::empty()
+void Dictionary<K, V, F>::clear()
 {
 
     clearHelper(this->root);
@@ -578,19 +621,15 @@ void Dictionary<K, V, F>::empty()
 
 }
 
-
-
-
-
-
-
 //-----OPERATORS-----
 
 template<class K, class V, class F>
 ostream& operator <<(ostream& out, Dictionary<K, V, F>& d1)
 {
+    out << "Inordine:\n";
     d1.inorder(d1.getRoot());
     out << endl;
+    out << "Preordine:\n";
     d1.preorder(d1.getRoot());
     return out;
 
@@ -599,7 +638,6 @@ ostream& operator <<(ostream& out, Dictionary<K, V, F>& d1)
 template<class K, class V, class F>
 Dictionary<K, V, F>& Dictionary<K, V, F>::operator=(const Dictionary& d1)
 {
-    this->height = d1.height;
     this->root = copyHelper(d1.root);
 
     return *this;
@@ -617,36 +655,50 @@ V Dictionary<K, V, F>::operator[](K k)
 
 int main()
 {
-
-
     Dictionary<int, int, KeyComp<int>> tree;
 
     tree.addPair(12, 2);
     tree.addPair(2, 3);
     tree.addPair(1, 2);
     tree.addPair(3, 7);
-    tree.addPair(12, 1);
     tree.addPair(9, 1);
     tree.addPair(19, 0);
 
+    assert(tree[12] == 2);
 
-    Dictionary<int, int, KeyComp<int>> d2;
-    d2 = tree;
+    tree.addPair(12, 100);
+
+    assert(tree[12] == 100);
+
+    
+    Dictionary<int, int, KeyComp<int>> d1;
+    d1 = tree;
+
+    assert(tree[1] == d1[1]);
 
     tree.removeKey(2);
-    tree.removeKey(3);
     tree.removeKey(1);
+
+    assert(d1[1] == 2); //d1 nu se modifica odata cu tree
 
     cout << tree << endl;
 
 
 
+    //specializare pentru string
+
+    Dictionary<string, int, KeyComp<string>> d2;
+    d2.addPair("zece", 1);
+    d2.addPair("doi", 0);
+    d2.addPair("trei", 3);
+    d2.addPair("do", 200);
+    d2.addPair("zece", 10);
+    d2.addPair("zeze", 11);
+    d2.addPair("patru", 4);
     cout << d2;
 
-    cout << tree[3];
-
-    d2.empty();
-    cout << d2;
+    assert(d2["zece"] == 11); //zeze = zece
+    assert(d2["doi"] == 200); //do = doi
 
     return 0;
 }

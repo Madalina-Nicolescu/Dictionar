@@ -25,14 +25,15 @@ public:
 			n = k2.length() / 2;
 		else n = k1.length() / 2;
 
-		if (k1.substr(0, n) == k2.substr(0, n))
+		if ((k1 == k2) || k1.substr(0, n) == k2.substr(0, n))
 			return 0;
 		else
 		{
 			for (int i = 0; i <= n; i++)
 				if (k1[i] < k2[i])
 					return -1;
+				else return 1;
 		}
-		return 1;
+		
 	}
 };
