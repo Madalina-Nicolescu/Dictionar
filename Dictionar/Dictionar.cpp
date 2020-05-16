@@ -4,6 +4,7 @@
 #include<vector>
 #include<string>
 #include<cassert>
+#include<queue>
 
 
 using namespace std;
@@ -37,11 +38,13 @@ public:
 
     Dictionary();
     Dictionary(const Dictionary& d1);
+    ~Dictionary() ;
 
     void addPair(K, V);
     void removeKey(K);
     bool findKey(K);
     void clear();
+    int size();
 
     Dictionary& operator = (const Dictionary&);
     V operator [](K);
@@ -144,10 +147,10 @@ void Dictionary<K, V, F>::right_rotate(Nod<K, V>* x)
 }
 
 
-
+//-----HELPERS FOR INSERTION-----
 
 template<class K, class V, class F>
-Nod<K, V>* Dictionary<K, V, F>::search(K key)
+Nod<K, V>* Dictionary<K, V, F>::search(K key) //functie care returneaza pozitia unde o sa fie inserat nodul cu cheia key
 {
     Nod<K, V>* p = root;
     while (p != NULL)
@@ -505,12 +508,10 @@ void Dictionary<K, V, F>::preorder(Nod<K, V>* r)
 {
     if (r == NULL)
         return;
-    cout << r->key << " " << r->value << endl;
+    cout << r->key << " : " << r->value <<", " ;
     inorder(r->left);
-
     inorder(r->right);
 }
-
 
 
 template<class K, class V, class F>
@@ -519,7 +520,7 @@ void Dictionary<K, V, F>::inorder(Nod<K, V>* r)
     if (r == NULL)
         return;
     inorder(r->left);
-    cout << r->key << " " << r->value << endl;
+    cout << r->key << " : " << r->value << ", ";
     inorder(r->right);
 }
 
@@ -548,6 +549,16 @@ template<class K, class V, class F>
 Dictionary<K, V, F>::Dictionary(const Dictionary& d1) //copy constructor
 {
     this->root = copyHelper(d1.root); //functie recursiva pentru copierea arborelui
+}
+
+
+//-----DESTRUCTOR-----
+
+template<class K, class V, class F>
+Dictionary<K, V, F>::~Dictionary()
+{
+    this->clearHelper(this->root);
+    this->root = NULL;
 }
 
 
@@ -596,20 +607,33 @@ void Dictionary<K, V, F>::addPair(K k, V v)
 template<class K, class V, class F>
 void Dictionary<K, V, F>::removeKey(K k)
 {
-    Nod<K, V>* p = search(k);
-
-    if (p != NULL)
+    
+    try
     {
-        deleteNod(p);
+        if (!findKey(k))
+            throw "Cheia nu se afla in dictionar.";
     }
+    catch(string n)
+    {
+        cout << n;
+    }
+    
+    Nod<K, V>* p = search(k);
+    deleteNod(p);
 }
 
 template<class K, class V, class F>
 bool Dictionary<K, V, F>::findKey(K k)
 {
-    if (search(k) != NULL)
+    Nod<K, V>* p = search(k);
+    if(cmp(p->key, k)==0)
         return true;
-    return false;
+    if(cmp(p->key, k) == -1 && p->right == NULL)
+        return false;
+    if (cmp(p->key, k) == 1 && p->left == NULL)
+        return false;
+    return true;
+
 }
 
 template<class K, class V, class F>
@@ -621,16 +645,45 @@ void Dictionary<K, V, F>::clear()
 
 }
 
+template<class K, class V, class F>
+int Dictionary<K, V, F>::size()
+{
+    int s = 0;
+    queue<Nod<K,V>*> q;
+    if (this->root == NULL)
+        return 0;
+    q.push(this->root);
+    while (!q.empty())
+    {
+        Nod<K, V>* i = q.front();
+        if (i !=NULL && i->left != NULL)
+            q.push(i->left);
+        if (i != NULL && i->right != NULL)
+            q.push(i->right);
+        q.pop();
+        s++;
+
+    }
+    
+    return s;
+
+}
+
 //-----OPERATORS-----
 
 template<class K, class V, class F>
 ostream& operator <<(ostream& out, Dictionary<K, V, F>& d1)
 {
     out << "Inordine:\n";
+    out << "{";
     d1.inorder(d1.getRoot());
-    out << endl;
+    out << "}";
+    out << endl<<endl;
     out << "Preordine:\n";
+    out << "{";
     d1.preorder(d1.getRoot());
+    out << "}";
+    out << endl;
     return out;
 
 }
@@ -647,6 +700,18 @@ Dictionary<K, V, F>& Dictionary<K, V, F>::operator=(const Dictionary& d1)
 template<class K, class V, class F>
 V Dictionary<K, V, F>::operator[](K k)
 {
+    
+    try
+    {
+        if (!findKey(k))
+        {
+            throw "Cheia nu se afla in dictionar.";
+        }
+    }
+    catch(string n)
+    {
+        cout << n;
+    }
     Nod<K, V>* p = search(k);
     return p->value;
 }
@@ -662,27 +727,30 @@ int main()
     tree.addPair(1, 2);
     tree.addPair(3, 7);
     tree.addPair(9, 1);
-    tree.addPair(19, 0);
+    tree.addPair(20, 8);
+    tree.addPair(21, 5);
 
     assert(tree[12] == 2);
 
     tree.addPair(12, 100);
 
-    assert(tree[12] == 100);
+    assert(tree[12] == 100); //s-a inlocuit valoarea
+    assert(tree.findKey(20) == true);
+    assert(tree.findKey(5) == false);
 
-    
+
     Dictionary<int, int, KeyComp<int>> d1;
     d1 = tree;
 
     assert(tree[1] == d1[1]);
 
     tree.removeKey(2);
-    tree.removeKey(1);
+    tree.removeKey(20);
 
     assert(d1[1] == 2); //d1 nu se modifica odata cu tree
-
-    cout << tree << endl;
-
+   
+    d1.clear();
+    assert(d1.size() == 0);
 
 
     //specializare pentru string
@@ -695,10 +763,12 @@ int main()
     d2.addPair("zece", 10);
     d2.addPair("zeze", 11);
     d2.addPair("patru", 4);
-    cout << d2;
 
     assert(d2["zece"] == 11); //zeze = zece
     assert(d2["doi"] == 200); //do = doi
+
+    d2.removeKey("trei");
+    assert(d2.findKey("trei") == false);
 
     return 0;
 }
