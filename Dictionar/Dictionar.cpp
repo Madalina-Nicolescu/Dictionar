@@ -400,6 +400,7 @@ void Dictionary<K, V, F>::fixDelete(Nod<K, V>* x)
 template<class K, class V, class F>
 void Dictionary<K, V, F>::deleteNod(Nod<K, V>* x)
 {
+    //stergerea ca la BST
     Nod<K, V>* y = replace(x); //nodul care o sa il inlocuiasca pe x;
 
     if (y == NULL)//daca x e frunza
@@ -410,7 +411,7 @@ void Dictionary<K, V, F>::deleteNod(Nod<K, V>* x)
         }
         else
         {
-            if (x->color == "black")
+            if (x->color == "black") //daca nodul care trebuie sters este negru, trebuie sa verificam ca se respecta proprietatile de rbt
                 fixDelete(x);
             else
             {
@@ -440,7 +441,7 @@ void Dictionary<K, V, F>::deleteNod(Nod<K, V>* x)
     if (x->left == NULL || x->right == NULL) //daca are doar un copil
     {
         if (x == root)
-        {
+        {   //x e radacina, valorile din y sunt mutate in radacina si apoi y este sters
             x->key = y->key;
             x->value = y->value;
             x->right = NULL;
@@ -449,11 +450,11 @@ void Dictionary<K, V, F>::deleteNod(Nod<K, V>* x)
         }
         else
         {
-            if (x->parent->left == x)
+            if (x->parent->left == x)//fiu stang
             {
                 x->parent->left = y;
             }
-            else
+            else//fiu drept
             {
                 x->parent->right = y;
             }
@@ -468,8 +469,6 @@ void Dictionary<K, V, F>::deleteNod(Nod<K, V>* x)
             {
                 y->color = "black";
             }
-
-
 
         }
         return;
